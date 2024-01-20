@@ -2,6 +2,7 @@
 Arduino library for the Winbond W25Q16 Serial Flash.
 
 forked from [derekevans](https://github.com/derekevans/W25Q16) to add selectable SPI functionality
+
 Tested for use with [rogerclarkmelbourne](https://github.com/rogerclarkmelbourne/Arduino_STM32)'s stm32 core
 
 ## Connections for W25Q16 to Arduno Uno or Atmega328
