@@ -5,6 +5,7 @@
 
 #include "Arduino.h"
 #include "W25Q16.h"
+#include <SPI.h>
 
 /********************************Public methods****************************/
 
@@ -28,12 +29,14 @@
  ******************************************************************************/
 void W25Q16::init(int FLASH_SS)
 {
+  SPI_2 = new SPIClass(1); 
   pinMode(FLASH_SS, OUTPUT);
   digitalWrite(FLASH_SS, HIGH);
   _FLASH_SS = FLASH_SS;
-  SPI.begin();
-  SPI.setBitOrder(MSBFIRST);
-  SPI.setDataMode(SPI_MODE3);
+  SPI_2->begin();
+  SPI_2->setBitOrder(MSBFIRST);
+  SPI_2->setDataMode(SPI_MODE3);
+  //SPI_2->setClockDivider(SPI_CLOCK_DIV2);
   releasePowerDown();
   writeDisable();
 }
@@ -57,11 +60,11 @@ void W25Q16::init(int FLASH_SS)
  ******************************************************************************/
 byte W25Q16::read(unsigned int page, byte pageAddress) {
   digitalWrite(_FLASH_SS, LOW);
-  SPI.transfer(READ_DATA);
-  SPI.transfer((page >> 8) & 0xFF);
-  SPI.transfer((page >> 0) & 0xFF);
-  SPI.transfer(pageAddress);
-  byte val = SPI.transfer(0);
+  SPI_2->transfer(READ_DATA);
+  SPI_2->transfer((page >> 8) & 0xFF);
+  SPI_2->transfer((page >> 0) & 0xFF);
+  SPI_2->transfer(pageAddress);
+  byte val = SPI_2->transfer(0);
   digitalWrite(_FLASH_SS, HIGH);
   notBusy();
   return val;
@@ -87,11 +90,11 @@ byte W25Q16::read(unsigned int page, byte pageAddress) {
 void W25Q16::write(unsigned int page, byte pageAddress, byte val) {
     writeEnable();
     digitalWrite(_FLASH_SS, LOW);
-    SPI.transfer(PAGE_PROGRAM);
-    SPI.transfer((page >> 8) & 0xFF);
-    SPI.transfer((page >> 0) & 0xFF);
-    SPI.transfer(pageAddress);
-    SPI.transfer(val);
+    SPI_2->transfer(PAGE_PROGRAM);
+    SPI_2->transfer((page >> 8) & 0xFF);
+    SPI_2->transfer((page >> 0) & 0xFF);
+    SPI_2->transfer(pageAddress);
+    SPI_2->transfer(val);
     digitalWrite(_FLASH_SS, HIGH);
     notBusy();
     writeDisable();
@@ -115,10 +118,10 @@ void W25Q16::write(unsigned int page, byte pageAddress, byte val) {
 void W25Q16::initStreamWrite(unsigned int page, byte pageAddress) {
 	writeEnable();
     digitalWrite(_FLASH_SS, LOW);
-    SPI.transfer(PAGE_PROGRAM);
-    SPI.transfer((page >> 8) & 0xFF);
-    SPI.transfer((page >> 0) & 0xFF);
-    SPI.transfer(pageAddress);
+    SPI_2->transfer(PAGE_PROGRAM);
+    SPI_2->transfer((page >> 8) & 0xFF);
+    SPI_2->transfer((page >> 0) & 0xFF);
+    SPI_2->transfer(pageAddress);
 }
 
 /*****************************************************************************
@@ -134,7 +137,7 @@ void W25Q16::initStreamWrite(unsigned int page, byte pageAddress) {
  * 					
  ******************************************************************************/
 void W25Q16::streamWrite(byte val) {
-	SPI.transfer(val);
+	SPI_2->transfer(val);
 }
 
 /*****************************************************************************
@@ -172,10 +175,10 @@ void W25Q16::closeStreamWrite() {
  ******************************************************************************/
 void W25Q16::initStreamRead(unsigned int page, byte pageAddress) {
 	digitalWrite(_FLASH_SS, LOW);
-  	SPI.transfer(READ_DATA);
-  	SPI.transfer((page >> 8) & 0xFF);
-  	SPI.transfer((page >> 0) & 0xFF);
-  	SPI.transfer(pageAddress);
+  	SPI_2->transfer(READ_DATA);
+  	SPI_2->transfer((page >> 8) & 0xFF);
+  	SPI_2->transfer((page >> 0) & 0xFF);
+  	SPI_2->transfer(pageAddress);
 }
 
 /*****************************************************************************
@@ -191,7 +194,7 @@ void W25Q16::initStreamRead(unsigned int page, byte pageAddress) {
  * 					
  ******************************************************************************/
 byte W25Q16::streamRead() {
-	return SPI.transfer(0);
+	return SPI_2->transfer(0);
 }
 
 /*****************************************************************************
@@ -225,7 +228,7 @@ void W25Q16::closeStreamRead() {
  ******************************************************************************/
 void W25Q16::powerDown() {
   digitalWrite(_FLASH_SS, LOW);
-  SPI.transfer(POWER_DOWN);
+  SPI_2->transfer(POWER_DOWN);
   digitalWrite(_FLASH_SS, HIGH);
   notBusy();
 }
@@ -245,7 +248,7 @@ void W25Q16::powerDown() {
  ******************************************************************************/
 void W25Q16::releasePowerDown() {
   digitalWrite(_FLASH_SS, LOW);
-  SPI.transfer(RELEASE_POWER_DOWN);
+  SPI_2->transfer(RELEASE_POWER_DOWN);
   digitalWrite(_FLASH_SS, HIGH);
   notBusy();
 }
@@ -265,7 +268,7 @@ void W25Q16::releasePowerDown() {
 void W25Q16::chipErase() {
   writeEnable();
   digitalWrite(_FLASH_SS, LOW);
-  SPI.transfer(CHIP_ERASE);
+  SPI_2->transfer(CHIP_ERASE);
   digitalWrite(_FLASH_SS, HIGH);
   notBusy();
   writeDisable();
@@ -285,11 +288,11 @@ void W25Q16::chipErase() {
  ******************************************************************************/
 byte W25Q16::manufacturerID() {
   digitalWrite(_FLASH_SS, LOW);
-  SPI.transfer(MANUFACTURER_ID);
-  SPI.transfer(0);
-  SPI.transfer(0);
-  SPI.transfer(0);
-  byte val = SPI.transfer(0);
+  SPI_2->transfer(MANUFACTURER_ID);
+  SPI_2->transfer(0);
+  SPI_2->transfer(0);
+  SPI_2->transfer(0);
+  byte val = SPI_2->transfer(0);
   digitalWrite(_FLASH_SS, HIGH);
   notBusy();
   return val;
@@ -313,8 +316,8 @@ byte W25Q16::manufacturerID() {
  ******************************************************************************/
 void W25Q16::notBusy() {
   digitalWrite(_FLASH_SS, LOW);
-  SPI.transfer(READ_STATUS_REGISTER_1);
-  while (bitRead(SPI.transfer(0),0) & 1) {
+  SPI_2->transfer(READ_STATUS_REGISTER_1);
+  while (bitRead(SPI_2->transfer(0),0) & 1) {
   }
   digitalWrite(_FLASH_SS, HIGH);
 }
@@ -335,7 +338,7 @@ void W25Q16::notBusy() {
  ******************************************************************************/
 void W25Q16::writeEnable() {
   digitalWrite(_FLASH_SS, LOW);
-  SPI.transfer(WRITE_ENABLE);
+  SPI_2->transfer(WRITE_ENABLE);
   digitalWrite(_FLASH_SS, HIGH);
   notBusy();
 }
@@ -357,7 +360,7 @@ void W25Q16::writeEnable() {
  ******************************************************************************/
 void W25Q16::writeDisable() {
   digitalWrite(_FLASH_SS, LOW);
-  SPI.transfer(WRITE_DISABLE);
+  SPI_2->transfer(WRITE_DISABLE);
   digitalWrite(_FLASH_SS, HIGH);
   notBusy();
 }

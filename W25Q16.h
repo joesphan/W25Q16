@@ -40,6 +40,7 @@ class W25Q16
   	void writeDisable();
   	void notBusy();
     int _FLASH_SS;
+    SPIClass * SPI_2;
 };
 
 #endif

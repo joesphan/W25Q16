@@ -13,7 +13,7 @@
  
 #include <SPI.h> //You must include the SPI library along with the W25Q16 library!
 #include <W25Q16.h>
-
+SPIClass spiToUse(1);
 W25Q16 flash;
 unsigned int startPage = 0;
 unsigned int startPageAddress = 0;
@@ -21,10 +21,11 @@ unsigned int endPage = 0;
 unsigned int endPageAddress = 0;
 
 void setup() {
-  Serial.begin(9600);
+  Serial2.begin(9600);
   
+  Serial2.println("start");
   //initialize the pcf2127
-  flash.init(10); 
+  flash.init(PB6); 
   
   //erase the entire chips contents
   flash.chipErase();
@@ -32,10 +33,13 @@ void setup() {
   //read the manufacturer ID to make sure communications are OK
   //should output 0xEF
   byte manID = flash.manufacturerID(); 
-  Serial.print("Manufacturer ID: ");
-  Serial.println(manID,HEX);
+  Serial2.print("Manufacturer ID: ");
+  Serial2.println(manID,HEX);
   //put the flash in lowest power state
-  flash.powerDown(); 
+  delay(500);
+  Serial2.println("pd-");
+  //flash.powerDown(); 
+  Serial2.println("pd");
 }
 
 void loop() {
@@ -68,7 +72,7 @@ void loop() {
   }
   
   //Put the flash in its lowest power state
-  flash.powerDown();
+  //flash.powerDown();
   
   //set the start page to the end page to utilize other address memory
   startPage = endPage;
@@ -79,7 +83,9 @@ void loop() {
 //Checks if the flash page address is full
 void endOfPage() {
   if (endPageAddress>255) {
-    endPage++;
+    
+    flash.chipErase();
+    //endPage++;
     if (endPage>8191) {
       endPage = 0;
     } 
@@ -89,10 +95,10 @@ void endOfPage() {
 
 //formats the output for the console
 void consoleOutput(unsigned int page, unsigned int address, byte val) {
-   Serial.print("Page ");
-   Serial.print(page);
-   Serial.print(" Address ");
-   Serial.print(address);
-   Serial.print(": ");
-   Serial.println(val);
+   Serial2.print("Page ");
+   Serial2.print(page);
+   Serial2.print(" Address ");
+   Serial2.print(address);
+   Serial2.print(": ");
+   Serial2.println(val);
 } 
